@@ -1,5 +1,6 @@
 package com.darmi.plugin.spring;
 
+
 import org.springframework.context.annotation.Bean;
 
 /**

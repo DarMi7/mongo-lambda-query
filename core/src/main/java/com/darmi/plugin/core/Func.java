@@ -10,7 +10,7 @@ import java.util.List;
  * @author darmi
  */
 public interface Func<Children, R> extends Serializable {
-  Children andBack();
+  Children and();
 
   Children orFront();
 

@@ -44,8 +44,8 @@ public abstract class AbstractQuery<T, R, Children extends AbstractQuery<T, R, C
 
 
   @Override
-  public Children andBack() {
-    return addCondition(true, null, AND_BACK, null);
+  public Children and() {
+    return addCondition(true, null, AND, null);
   }
 
   @Override

@@ -8,7 +8,7 @@ package com.darmi.plugin.core;
 public enum SqlKeyword{
     IS("IS"),
     OR_FRONT("OR"),
-    AND_BACK("AND_BACK"),
+    AND("AND"),
     IN("IN"),
     NE("NE"),
     NOT_IN("NOT IN"),

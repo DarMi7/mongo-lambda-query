@@ -21,7 +21,7 @@ public class MongoLambdaQuery<T> extends MongoAbstractLambdaQuery<T, MongoLambda
     }
 
     @Override
-    protected String columnToString(SFunction<T, ?> column) throws Exception {
+    protected String columnToString(SFunction<T, ?> column) {
         return LambdaUtils.getField(column);
     }
 }
