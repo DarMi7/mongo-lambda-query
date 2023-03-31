@@ -1,6 +1,7 @@
 package com.darmi.plugin.core;
 
 import com.darmi.plugin.spring.SpringUtil;
+import java.util.Collections;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -63,12 +64,20 @@ public abstract class MongoAbstractLambdaQuery<
 
     @Override
     public T one() {
-        return this.mongoTemplate.findOne(addCriteria(), entityClass);
+        Query query = addCriteria();
+        if (CollectionUtils.isEmpty(criterion)) {
+            return null;
+        }
+        return this.mongoTemplate.findOne(query, entityClass);
     }
 
     @Override
     public List<T> list() {
-        return this.mongoTemplate.find(addCriteria(), entityClass);
+        Query query = addCriteria();
+        if (CollectionUtils.isEmpty(criterion)) {
+            return Collections.emptyList();
+        }
+        return this.mongoTemplate.find(query, entityClass);
     }
 
     private Query addCriteria() {
