@@ -30,6 +30,6 @@ a lambda-based object-oriented mongo query plug-in <br>
     .page(taskCriteria.getPagination());
     }
     }
-具体使用案例参考demo模块，如有什么问题欢迎留言。
-
+具体使用案例参考demo模块，如有什么问题欢迎留言，如果有用请为我点亮star。<br>
+原理分析可以查看博客：https://blog.csdn.net/qq_28175019/article/details/129100748
 
