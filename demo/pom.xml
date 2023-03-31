@@ -19,7 +19,7 @@
         <dependency>
             <groupId>io.github.darmi7</groupId>
             <artifactId>mongo-lambda-query</artifactId>
-            <version>1.1.0</version>
+            <version>1.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

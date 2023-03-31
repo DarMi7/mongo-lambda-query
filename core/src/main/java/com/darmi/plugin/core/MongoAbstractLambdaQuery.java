@@ -29,7 +29,7 @@ public abstract class MongoAbstractLambdaQuery<
 
     private List<Criteria> andCriterion;
 
-    private Criteria andOrCriterion;
+    private Criteria orCriteria;
 
     private Query query;
 
@@ -72,19 +72,26 @@ public abstract class MongoAbstractLambdaQuery<
     }
 
     private Query addCriteria() {
-        handleAndOrCriteria(criterion);
+        handleOrCriteria();
+        handleAndCriteria();
         criterion.stream().filter(Objects::nonNull).forEach(query::addCriteria);
         return query;
     }
 
-    private void handleAndOrCriteria(List<Criteria> criterion) {
-        if (andOrCriterion == null) return;
-        if (!CollectionUtils.isEmpty(andCriterion)) {
-            andOrCriterion.andOperator(andCriterion.toArray(new Criteria[0]));
+    private void handleOrCriteria() {
+        if (orCriteria == null) {
+            return;
         }
-        criterion.add(andOrCriterion);
+        criterion.add(orCriteria);
     }
 
+    private void handleAndCriteria() {
+        if (!CollectionUtils.isEmpty(andCriterion)) {
+            Criteria andCriteria = new Criteria();
+            andCriteria.andOperator(andCriterion.toArray(new Criteria[0]));
+            criterion.add(andCriteria);
+        }
+    }
     @Override
     public Children sort(SFunction<T, ?> column, Sort.Direction direction) {
         return typedThis;
@@ -147,7 +154,6 @@ public abstract class MongoAbstractLambdaQuery<
                 orFrontCriteria();
                 break;
             case AND:
-                if (andOrCriterion == null) andOrCriterion = new Criteria();
                 andCriterion = new ArrayList<>();
                 break;
             default:
@@ -157,17 +163,18 @@ public abstract class MongoAbstractLambdaQuery<
             andCriterion.add(criteria);
             return;
         }
-        if (criteria != null) criterion.add(criteria);
-    }
-
-    private void orFrontCriteria() {
-        if (andOrCriterion == null) andOrCriterion = new Criteria();
-        if (!CollectionUtils.isEmpty(criterion) && criterion.size() > 1) {
-            andOrCriterion.orOperator(criterion.toArray(new Criteria[0]));
-            criterion.clear();
+        if (criteria != null) {
+            criterion.add(criteria);
         }
     }
 
+    private void orFrontCriteria() {
+        if (!CollectionUtils.isEmpty(criterion) && criterion.size() > 1) {
+            orCriteria = new Criteria();
+            orCriteria.orOperator(criterion.toArray(new Criteria[0]));
+            criterion.clear();
+        }
+    }
     protected void initNeed() {
         mongoTemplate = SpringUtil.getBean(MongoTemplate.class);
         criterion = new ArrayList<>(8);
