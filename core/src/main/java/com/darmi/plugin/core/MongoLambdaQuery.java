@@ -20,8 +20,4 @@ public class MongoLambdaQuery<T> extends MongoAbstractLambdaQuery<T, MongoLambda
         super.setMongoTemplate(mongoTemplate);
     }
 
-    @Override
-    protected String columnToString(SFunction<T, ?> column) {
-        return LambdaUtils.getField(column);
-    }
 }

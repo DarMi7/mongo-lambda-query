@@ -14,4 +14,6 @@ public interface Query<T> {
 
     Page<T> page(PaginationDTO pagination);
 
+    Page<T> aggregate(PaginationDTO pagination);
+
 }
