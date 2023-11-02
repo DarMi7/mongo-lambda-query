@@ -1,21 +1,14 @@
 package com.darmi.plugin.core;
 
 import com.darmi.plugin.spring.SpringUtil;
-import java.util.Collections;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.util.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.regex.Pattern;
 
 /**
  * @author darmi
@@ -26,13 +19,7 @@ public abstract class MongoAbstractLambdaQuery<
 
     private MongoTemplate mongoTemplate;
 
-    private List<Criteria> criterion;
-
-    private List<Criteria> andCriterion;
-
-    private Criteria orCriteria;
-
-    private Query query;
+    private CombineSqlSegment combineSqlSegment;
 
     public void setMongoTemplate(MongoTemplate mongoTemplate) {
         this.mongoTemplate = mongoTemplate;
@@ -53,54 +40,28 @@ public abstract class MongoAbstractLambdaQuery<
             } else {
                 pageable = PageRequest.of(pagination.getPage(), pagination.getPageSize());
             }
-            addCriteria();
-            return new PageImpl(
-                    mongoTemplate.find(query.with(pageable), entityClass),
-                    pageable,
-                    mongoTemplate.count(query, entityClass));
+            Query query = combineSqlSegment.getQuery();
+            return new PageImpl<>(
+                mongoTemplate.find(query.with(pageable), entityClass),
+                pageable,
+                mongoTemplate.count(query, entityClass));
         }
-        return new PageImpl(list());
+        return new PageImpl<>(list());
     }
 
     @Override
     public T one() {
-        Query query = addCriteria();
-        if (CollectionUtils.isEmpty(criterion)) {
-            return null;
-        }
+        Query query = combineSqlSegment.getQuery();
         return this.mongoTemplate.findOne(query, entityClass);
     }
 
     @Override
     public List<T> list() {
-        Query query = addCriteria();
-        if (CollectionUtils.isEmpty(criterion)) {
-            return Collections.emptyList();
-        }
+        Query query = combineSqlSegment.getQuery();
         return this.mongoTemplate.find(query, entityClass);
     }
 
-    private Query addCriteria() {
-        handleOrCriteria();
-        handleAndCriteria();
-        criterion.stream().filter(Objects::nonNull).forEach(query::addCriteria);
-        return query;
-    }
 
-    private void handleOrCriteria() {
-        if (orCriteria == null) {
-            return;
-        }
-        criterion.add(orCriteria);
-    }
-
-    private void handleAndCriteria() {
-        if (!CollectionUtils.isEmpty(andCriterion)) {
-            Criteria andCriteria = new Criteria();
-            andCriteria.andOperator(andCriterion.toArray(new Criteria[0]));
-            criterion.add(andCriteria);
-        }
-    }
     @Override
     public Children sort(SFunction<T, ?> column, Sort.Direction direction) {
         return typedThis;
@@ -109,84 +70,16 @@ public abstract class MongoAbstractLambdaQuery<
     @Override
     protected final void columnToSqlSegment(
             SFunction<T, ?> column, Object val, SqlKeyword keyWord, Object... key) {
-        combineSqlSegment(val, keyWord, LambdaUtils.getField(column), key);
+        combineSqlSegment.combineSqlSegment(val, keyWord, LambdaUtils.getField(column), key);
     }
 
     @Override
     protected void columnToSqlSegment(String column, Object val, SqlKeyword keyWord, Object... key) {
-        combineSqlSegment(val, keyWord, column, key);
+        combineSqlSegment.combineSqlSegment(val, keyWord, column, key);
     }
 
-    private void combineSqlSegment(Object val, SqlKeyword keyWord, String fieldName, Object[] key) {
-        Criteria criteria = null;
-        switch (keyWord) {
-            case IS:
-                criteria = Criteria.where(fieldName).is(val);
-                break;
-            case LIKE:
-                Pattern pattern = Pattern.compile(val + ".*", Pattern.CASE_INSENSITIVE);
-                criteria = Criteria.where(fieldName).regex(pattern);
-                break;
-            case IN:
-                if (val instanceof List) {
-                    criteria = Criteria.where(fieldName).in(((List<?>) val).toArray());
-                    break;
-                }
-                criteria = Criteria.where(fieldName).in(val);
-                break;
-            case GT:
-                criteria = Criteria.where(fieldName).gt(val);
-                break;
-            case GE:
-                criteria = Criteria.where(fieldName).gte(val);
-                break;
-            case LT:
-                criteria = Criteria.where(fieldName).lt(val);
-                break;
-            case LE:
-                criteria = Criteria.where(fieldName).lte(val);
-                break;
-            case NE:
-                criteria = Criteria.where(fieldName).ne(val);
-                break;
-            case ELEMMATCH:
-                if (val instanceof ArrayList) {
-                    criteria =
-                            Criteria.where(fieldName)
-                                    .elemMatch(Criteria.where(key[0].toString()).in(((ArrayList<?>) val)));
-                }
-                break;
-            case REG:
-                criteria = Criteria.where(fieldName).regex(val.toString(), "i");
-                break;
-            case OR_FRONT:
-                orFrontCriteria();
-                break;
-            case AND:
-                andCriterion = new ArrayList<>();
-                break;
-            default:
-                throw new RuntimeException("#####columnToSqlSegment, not exist this function######");
-        }
-        if (andCriterion != null && criteria != null) {
-            andCriterion.add(criteria);
-            return;
-        }
-        if (criteria != null) {
-            criterion.add(criteria);
-        }
-    }
-
-    private void orFrontCriteria() {
-        if (!CollectionUtils.isEmpty(criterion) && criterion.size() > 1) {
-            orCriteria = new Criteria();
-            orCriteria.orOperator(criterion.toArray(new Criteria[0]));
-            criterion.clear();
-        }
-    }
-    protected void initNeed() {
+    protected void initNeed(){
         mongoTemplate = SpringUtil.getBean(MongoTemplate.class);
-        criterion = new ArrayList<>(8);
-        query = new Query();
+        combineSqlSegment = new CombineSqlSegment();
     }
 }
