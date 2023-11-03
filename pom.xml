@@ -7,7 +7,7 @@
     <groupId>io.github.darmi7</groupId>
     <artifactId>parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0</version>
+    <version>${version}</version>
     <modules>
         <module>core</module>
         <module>demo</module>
@@ -16,5 +16,6 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <version>1.3.0</version>
     </properties>
 </project>
