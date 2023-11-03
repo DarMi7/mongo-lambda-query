@@ -19,16 +19,29 @@ a lambda-based object-oriented mongo query plug-in <br>
     ```
     @Repository
     public interface TaskRepository extends MongoRepository<Task, String> {
-    default Page<Task> search(TaskCriteria taskCriteria) {
-    return MongoLambdaQuery.lambdaQuery(Task.class)
-    .is(Task::getName, taskCriteria.getName())
-    .is(Task::getType, taskCriteria.getFuzzyName())
-    .reg(Task::getName, taskCriteria.getName())
-    .gt(Task::getPoints, taskCriteria.getPoints())
-    .gt(Task::getCreated, taskCriteria.getBegin())
-    .lt(Task::getCreated, taskCriteria.getEnd())
-    .page(taskCriteria.getPagination());
-    }
+  
+          default Page<Task> search(TaskCriteria taskCriteria) {
+                return MongoLambdaQuery.lambdaQuery(Task.class)
+                        .is(Task::getName, taskCriteria.getName())
+                        .is(Task::getType, taskCriteria.getFuzzyName())
+                        .reg(Task::getName, taskCriteria.getName())
+                        .gt(Task::getPoints, taskCriteria.getPoints())
+                        .gt(Task::getCreated, taskCriteria.getBegin())
+                        .lt(Task::getCreated, taskCriteria.getEnd())
+                        .page(taskCriteria.getPagination());
+            }
+        
+            default Page<Task> aggregate(TaskCriteria taskCriteria) {
+                return MongoLambdaQuery.lambdaQuery(Task.class)
+                    .is(Task::getName, taskCriteria.getName())
+                    .is(Task::getType, taskCriteria.getFuzzyName())
+                    .reg(Task::getName, taskCriteria.getName())
+                    .gt(Task::getPoints, taskCriteria.getPoints())
+                    .gt(Task::getCreated, taskCriteria.getBegin())
+                    .lt(Task::getCreated, taskCriteria.getEnd())
+                    .aggregate(taskCriteria.getPagination());
+            }
+            
     }
 具体使用案例参考demo模块，如有什么问题欢迎留言，如果有用请为我点亮star。<br>
 原理分析可以查看博客：https://blog.csdn.net/qq_28175019/article/details/129100748
