@@ -19,6 +19,21 @@ a lambda-based object-oriented mongo query plug-in <br>
     ```
         @Repository
         public interface TaskRepository extends MongoRepository<Task, String> {
+
+            default Task one(TaskCriteria taskCriteria) {
+                return MongoLambdaQuery.lambdaQuery(Task.class)
+                    .is(Task::getName, taskCriteria.getName())
+                    .one();
+            }
+            
+            default List<Task> list(TaskCriteria taskCriteria) {
+                return MongoLambdaQuery.lambdaQuery(Task.class)
+                    .gt(Task::getCreated, taskCriteria.getBegin())
+                    .lt(Task::getCreated, taskCriteria.getEnd())
+                    .list();
+            }
+            
+            
             default Page<Task> search(TaskCriteria taskCriteria) {
                 return MongoLambdaQuery.lambdaQuery(Task.class)
                         .is(Task::getName, taskCriteria.getName())
@@ -28,17 +43,6 @@ a lambda-based object-oriented mongo query plug-in <br>
                         .gt(Task::getCreated, taskCriteria.getBegin())
                         .lt(Task::getCreated, taskCriteria.getEnd())
                         .page(taskCriteria.getPagination());
-            }
-        
-            default Page<Task> aggregate(TaskCriteria taskCriteria) {
-                return MongoLambdaQuery.lambdaQuery(Task.class)
-                    .is(Task::getName, taskCriteria.getName())
-                    .is(Task::getType, taskCriteria.getFuzzyName())
-                    .reg(Task::getName, taskCriteria.getName())
-                    .gt(Task::getPoints, taskCriteria.getPoints())
-                    .gt(Task::getCreated, taskCriteria.getBegin())
-                    .lt(Task::getCreated, taskCriteria.getEnd())
-                    .aggregate(taskCriteria.getPagination());
             }
         }
 4. 具体使用案例参考demo模块，如有什么问题欢迎留言。<br>
